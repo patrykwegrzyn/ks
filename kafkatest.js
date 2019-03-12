@@ -1,56 +1,38 @@
-const { Kafka } = require('kafkajs')
-const Events = require('events');
-const most = require('most')
 
-const kafka = new Kafka({
-  clientId: 'my-app',
-  brokers: ['localhost:29092']
-})
+const StreamFactory = require('./src/factory')
 
-// const admin = kafka.admin()
-// const consumer = kafka.consumer({ groupId: 'test-group' })
+const options = {
+  kafka: {
+    clientId: 'my-app-2',
+    brokers: ['xx.xx.xx.239:29092']
+  } 
+};
 
+const conf = [
+  //{
+//   kind:'stream',
+//   topic: 'sensorData',
+//   groupId:'sensorData-stream'
+// },
+{
+  kind:'stream',
+  topic: 'public.area',
+  groupId:'public.area-stream3'
+}]
 
-class Consumer extends Events {
-  constructor(kafka, conf) {
-    super()
-    this.config = conf
-    this.consumer = kafka.consumer({ groupId: 'test-group' })
-  }
+const sf = new StreamFactory(options)
 
-  async initialize() {
-    console.log()
-    await this.consumer.connect()
-    await this.consumer.subscribe({ topic: 'sensorData' })
-    await this.consumer.run({
-      eachMessage: async ({ topic, partition, message }) => {
-        this.emit('message', { topic, partition, message })
-      },
-    })
-    return this;
-    console.log('here')
-  }
-}
-
-
-//console.log(kafka)
 async function test() {
-  const c = await new Consumer(kafka).initialize()
-  
-  most.fromEvent('message', c)
-  .forEach(event => { 
-    console.log(event)
-   })
-//   await admin.connect()
+  const [ area] = await sf.initialize(conf)
+  // sensorData.forEach(event => {
+  //   console.log('sensor event', event)
+  // })
 
-//   const meta = await admin.fetchTopicsOffset({ topics: [
-//           {
-//         topic: 'sensorData',
-//         partitions: [{ partition: 0 }],
-//       }
-//     ] })
-//  console.log(JSON.stringify(meta, null, 2))
+  area.forEach(event => {
+    console.log('area event', event)
+  })
 }
 
 
 test()
+

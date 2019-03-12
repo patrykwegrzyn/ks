@@ -1,14 +1,14 @@
 
 class Codec {
 
-  encode(message) {
-    const e = JSON.stringify(message);
-    return Promise.resolve(e);
+  async encode(message) {
+    return JSON.stringify(message);
   }
 
-  decode() {
-    const d = JSON.Parse(message)
-    return Promise.resolve(d);
+  async decode(message) {
+    return JSON.parse(message)
   }
 
 }
+
+module.exports = Codec;

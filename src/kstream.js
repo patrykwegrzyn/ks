@@ -1,5 +1,6 @@
-const _ = require('highland');
+
 const Codec = require('./codec')
+const { fromEvent } = require('most')
 
 class KStream {
 
@@ -9,21 +10,20 @@ class KStream {
     this.codec = codec || new Codec()
   }
 
-  initialize() {
-    const decode = _.wrapAsync(this.codec.decode)
-    this.stream = _(this.consumer).map(decode);
-    return Promise.resolve(this);
+  async decode(message) {
+    message.value = await this.codec.decode(message.value)
+    return message;
+  }
+  
+  async initialize() {
+    await this.consumer.start({topic: this.topic});
+    this.stream = fromEvent('message',this.consumer)
+    .map(this.decode.bind(this))
+    .await()
+          
+    return this.stream
   }
 
 }
-
-const methods = ['each', 'fork', 'resume', 'filter', 'group', 'map', 'batch'];
-
-methods.forEach(m => {
-  KStream.prototype[m] = function (eff) {
-    this.stream = this.stream[m](eff);
-    return this;
-  };
-});
 
 module.exports = KStream;
