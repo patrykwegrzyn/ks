@@ -4,11 +4,14 @@ class Consumer extends Events {
   constructor(kafka, options) {
     super()
     this.consumer = kafka.consumer(options)
+
+    const { DISCONNECT } = this.consumer.events
+    const removeListener = this.consumer.on(DISCONNECT, e => console.log(`DISCONNECT at ${e.timestamp}`))
+
   }
 
   async eachMessage({ topic, partition, message }) {
     const { offset, key, value, timestamp } = message;
-    console.log('here')
     this.emit('message', {
       topic,
       partition,
@@ -22,11 +25,11 @@ class Consumer extends Events {
   async start({topic}) {
     console.log('start', topic)
     await this.consumer.connect()
-    await this.consumer.subscribe({topic})
+    await this.consumer.subscribe({topic, fromBeginning: true })
     await this.consumer.run({
       eachMessage: this.eachMessage.bind(this)
     })
-    await this.consumer.seek({ topic : topic, partition: 0, offset: -2 })
+    await this.consumer.seek({ topic : topic, partition: 0 , offset: -2})
     return this;
   }
 }
